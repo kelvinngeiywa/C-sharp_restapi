@@ -9,7 +9,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[rest_api.Models.Product, rest_api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "rest_api.Models.DTO.ResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
