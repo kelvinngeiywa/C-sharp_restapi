@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using rest_api.Data;
 using rest_api.Models;
 using rest_api.Models.DTO;
 
@@ -9,116 +11,20 @@ namespace rest_api.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
+        private readonly AppDbContext _dbContext;
         private readonly ResponseDTO _response;
-        public ProductController()
+        public ProductController(AppDbContext dbContext)
         {
+            _dbContext = dbContext;
             _response = new ResponseDTO();
         }
 
-        static private List<Product> products = new List<Product>
-        {
-            new Product
-            {
-                Id  = Guid.NewGuid(),
-                Name = "Laptop",
-                Price = 85000.00,
-                Count = 10,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Laptop",
-                Price = 85000.00,
-                Count = 10,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Laptop",
-                Price = 85000.00,
-                Count = 10,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Smartphone",
-                Price = 45000.00,
-                Count = 25,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Keyboard",
-                Price = 2500.00,
-                Count = 40,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Mouse",
-                Price = 1200.00,
-                Count = 50,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Monitor",
-                Price = 18000.00,
-                Count = 15,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Headphones",
-                Price = 3500.00,
-                Count = 30,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Printer",
-                Price = 22000.00,
-                Count = 8,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "USB Flash Drive",
-                Price = 800.00,
-                Count = 100,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "External Hard Drive",
-                Price = 9500.00,
-                Count = 20,
-                DateAdded = DateTime.Now
-            },
-            new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = "Webcam",
-                Price = 4000.00,
-                Count = 12,
-                DateAdded = DateTime.Now
-            }
 
-        };
 
         [HttpGet]
-        public ActionResult<ResponseDTO> GetProducts()
+        public async Task<ActionResult<ResponseDTO>> GetProducts()
         {
+            var products = await _dbContext.products.ToListAsync();
             if (products == null || !products.Any())
             {
                 _response.Success = false;
@@ -134,9 +40,9 @@ namespace rest_api.Controllers
         }
 
         [HttpGet("{Id}")]
-        public ActionResult<ResponseDTO> GetproductById(string Id)
+        public async Task<ActionResult<ResponseDTO>> GetproductById(Guid Id)
         {
-            var product = products.FirstOrDefault(p => p.Id.ToString() == Id);
+            var product = await _dbContext.products.FindAsync(Id);
             if(product == null)
             {
                 _response.Success = false;
@@ -150,7 +56,7 @@ namespace rest_api.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Product> AddProduct(AddProductDTO addProductDTO)
+        public async Task<ActionResult<ResponseDTO>> AddProduct(AddProductDTO addProductDTO)
         {
             var newProduct = new Product
             {
@@ -162,21 +68,29 @@ namespace rest_api.Controllers
             if (newProduct == null)
                 return BadRequest();
 
-            products.Add(newProduct);
+            //await _dbContext.products.Add(newProduct);
+             _dbContext.products.Add(newProduct);
+            await _dbContext.SaveChangesAsync();
+            _response.Success = true;
+            _response.Message = "Product created!!!";
+            _response.Data = newProduct;
+
+
             return CreatedAtAction(
                 nameof(GetproductById),
                 new { Id = newProduct.Id},
-                newProduct
+                _response
             );
 
         }
 
         [HttpPut("{Id}")]
-        public IActionResult UpdateProduct(string Id,AddProductDTO updateProductDTO)
+        public async Task<IActionResult> UpdateProduct(string Id,AddProductDTO updateProductDTO)
         {
-            var product = products.FirstOrDefault(p => p.Id.ToString() == Id);
+            var product = await _dbContext.products.Where(p => p.Id.ToString() == Id).FirstOrDefaultAsync();
             if (product == null)
             {
+                _response.Success = false;
                 return NotFound(product);
             }
 
@@ -184,23 +98,134 @@ namespace rest_api.Controllers
             product.Price = updateProductDTO.Price;
             product.Count = updateProductDTO.Count;
 
-            return NoContent();
+            _response.Success = true;
+            _response.Message = "Product updated successfully!!!";
+            _response.Data = product;
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(_response);
 
 
         }
 
         [HttpDelete("{Id}")]
-        public IActionResult DeleteProduct(string Id)
+        public async Task<IActionResult> DeleteProduct(Guid Id)
         {
-            var product = products.FirstOrDefault(p => p.Id.ToString() == Id);
+            var product = await _dbContext.products.FindAsync(Id);
             if (product == null)
             {
                 return NotFound(product);
             }
-            products.Remove(product);
+             _dbContext.products.Remove(product);
+            _response.Success = true;
+            _response.Message = "Product deleted successfully!!!";
+            await _dbContext.SaveChangesAsync();
             //return Ok();
-            return NoContent();
+            return Ok(_response);
         }
+
+
+        //static private List<Product> products = new List<Product>
+        //{
+        //    new Product
+        //    {
+        //        Id  = Guid.NewGuid(),
+        //        Name = "Laptop",
+        //        Price = 85000.00,
+        //        Count = 10,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Laptop",
+        //        Price = 85000.00,
+        //        Count = 10,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Laptop",
+        //        Price = 85000.00,
+        //        Count = 10,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Smartphone",
+        //        Price = 45000.00,
+        //        Count = 25,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Keyboard",
+        //        Price = 2500.00,
+        //        Count = 40,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Mouse",
+        //        Price = 1200.00,
+        //        Count = 50,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Monitor",
+        //        Price = 18000.00,
+        //        Count = 15,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Headphones",
+        //        Price = 3500.00,
+        //        Count = 30,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Printer",
+        //        Price = 22000.00,
+        //        Count = 8,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "USB Flash Drive",
+        //        Price = 800.00,
+        //        Count = 100,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "External Hard Drive",
+        //        Price = 9500.00,
+        //        Count = 20,
+        //        DateAdded = DateTime.Now
+        //    },
+        //    new Product
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "Webcam",
+        //        Price = 4000.00,
+        //        Count = 12,
+        //        DateAdded = DateTime.Now
+        //    }
+
+        //};
 
     }
 }

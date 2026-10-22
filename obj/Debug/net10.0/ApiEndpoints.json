@@ -35,7 +35,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "rest_api.Models.Product",
+        "Type": "rest_api.Models.DTO.ResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -55,13 +55,13 @@
     "Parameters": [
       {
         "Name": "Id",
-        "Type": "System.String",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "rest_api.Models.Product",
+        "Type": "rest_api.Models.DTO.ResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -102,7 +102,7 @@
     "Parameters": [
       {
         "Name": "Id",
-        "Type": "System.String",
+        "Type": "System.Guid",
         "IsRequired": true
       }
     ],
