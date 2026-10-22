@@ -1,0 +1,36 @@
+@rootURL = https://localhost:7145
+
+GET {{rootURL}}/api/Product
+Accept: application/json
+
+###
+
+GET {{rootURL}}/api/Product/2350f46e-3589-444c-b563-a21dacbf8046
+Accept: application/json
+
+###
+
+POST {{rootURL}}/api/Product
+Content-Type: application/json
+{
+  "id": 14,
+  "name": "lenovo 112",
+  "price": 37500,
+  "count": 25,
+  "dateAdded": "2026-10-22T11:43:04.0244647+03:00"
+}
+
+###
+PUT {{rootURL}}/api/Product/e85b82b8-6de4-4764-88eb-6ecd6dc7b601
+Content-Type: application/json
+{
+  "name": "HP",
+  "price": 3999,
+  "count": 39
+}
+
+###
+
+DELETE {{rootURL}}/api/Product/1020b9a2-2cec-475f-960d-b0d45a862211
+Content-Type: application/json
+
